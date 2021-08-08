@@ -2,13 +2,12 @@
   "name": "eth-address-verifier-cl-ea",
   "version": "1.0.0",
   "description": "Chainlink External Adapter to verify Ethereum Address",
-  "main": "app.js",
+  "main": "index.js",
   "repository": "https://github.com/rajdeepbh/eth-address-verifier-cl-ea",
   "author": "Rajdeep Bharati <rajdeepbh@protonmail.com>",
   "license": "MIT",
-  "type": "module",
   "scripts": {
-    "start": "node app.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "@chainlink/external-adapter": "^0.2.3",
