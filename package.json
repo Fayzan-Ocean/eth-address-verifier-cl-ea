@@ -11,7 +11,12 @@
   },
   "dependencies": {
     "@chainlink/external-adapter": "^0.2.3",
-    "twitter-api-v2": "^1.2.0"
+    "@prisma/client": "^4.12.0",
+    "@thirdweb-dev/sdk": "^3.9.2",
+    "ethers": "^6.0.5",
+    "nanoid": "^4.0.2",
+    "prisma": "^4.12.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "body-parser": "^1.19.0",

@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  address      String
+  claimHistory ClaimHistory[]
+
+  @@index([address])
+}
+
+model ClaimHistory {
+  id        Int      @id @default(autoincrement())
+  address   String
+  amount    Decimal
+  claimedAt DateTime
+  user      User     @relation(fields: [claimId], references: [id])
+  claimId   Int
+
+  @@index([claimId])
+}
+
+model HWMCUser {
+  id           Int                @id @default(autoincrement())
+  address      String
+  claimHistory HWMCClaimHistory[]
+
+  @@index([address])
+}
+
+model NftData {
+  id            Int      @id @default(autoincrement())
+  isClaimed     Boolean?
+  isBlacklisted Boolean?
+  NFTid         Int      @unique
+  airdropId     Int?
+
+  @@index([NFTid])
+}
+
+model NftClaimData {
+  id            Int      @id @default(autoincrement())
+  isClaimed     Boolean?
+  isBlacklisted Boolean?
+  NFTid         Int
+  airdropId     Int?
+  claimReqId    String?
+  claimReqStatus String?
+
+  @@index([NFTid])
+}
+
+model HWMCClaimHistory {
+  id         Int      @id @default(autoincrement())
+  address    String
+  amountUSDT Decimal
+  amountwBTC Decimal
+  claimedAt  DateTime
+  user       HWMCUser @relation(fields: [claimId], references: [id])
+  claimId    Int
+
+  @@index([claimId])
+}
+
+model HWMCClaimRequest {
+  id          Int      @id @default(autoincrement())
+  address     String
+  amountUSDT  Decimal
+  amountwBTC  Decimal
+  claimedAt   DateTime
+  claimReqId  String
+  claimReqStatus String
+
+  @@index([claimReqId])
+}
