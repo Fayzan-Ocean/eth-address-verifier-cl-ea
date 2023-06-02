@@ -13,6 +13,7 @@
     "@chainlink/external-adapter": "^0.2.3",
     "@prisma/client": "^4.12.0",
     "@thirdweb-dev/sdk": "^3.9.2",
+    "csvtojson": "^2.0.10",
     "ethers": "^6.0.5",
     "nanoid": "^4.0.2",
     "prisma": "^4.12.0",
