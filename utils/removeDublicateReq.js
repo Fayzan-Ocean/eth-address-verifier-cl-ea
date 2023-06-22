@@ -1,96 +1,147 @@
 const { PrismaClient } = require('@prisma/client');
 const csv=require('csvtojson')
 const fs = require("fs");
+const csvV = require('fast-csv');
 
 
 const prisma = new PrismaClient()
-const csvFilePath='./utils/data.csv'
+const csvFilePath='./utils/reqs.csv'
 
 const readStream=fs.createReadStream(csvFilePath);
 
-const updateClaimReqStatus = async ( claimReqId)=>{
-
-    try {
-        const updatedRows = await prisma.hWMCClaimRequest.updateMany({
-          where: {
-            // Specify the conditions to select the rows you want to update
-            // For example, to update rows where the "status" is "pending"
-            claimReqId: claimReqId,
-            claimReqStatus: 'pending'
-          },
-          data: {
-            // Specify the fields and their updated values
-            // For example, to set the "status" to "completed"
-            claimReqStatus: 'success',
-          },
-        });
-    
-  
-      } catch (error) {
-        console.error('Error updating rows:', error);
-      } finally {
-        await prisma.$disconnect();
-      }
-    
-
-}
+const blWallets = ["0x94dB1FE366d59624be05eF8d8D692FEc10831f5D"]
 
 const readExcelDataAndSetSuccess = async () => {
     const jsonObj = await readStream.pipe(csv());
-    console.log(jsonObj.length);
+   
+     console.log(jsonObj.length);
+  /*   const dividedArray = divideArrayIntoParts(jsonObj, 5);
     
-    const dividedArray = divideArrayIntoParts(jsonObj, 5);
-    
-    console.log(dividedArray[1].length);
+    iterateDividedArrayWithTimeout(dividedArray, 3); */
 
-    iterateDividedArrayWithTimeout(dividedArray, 3);
+    const updatedData = removeDuplicates(jsonObj,'Address','USDT Amount',"wBTC Amount" );
+    console.log(updatedData.uniqueRecords.length)
+    console.log(updatedData.duplicates.length)
+
+    const finalData = removeRecordsByField(updatedData.uniqueRecords,'Address',blWallets)
+    console.log(finalData.length)
+
+   
+   // const deleted =   await removeDuplicatesFromDb(updatedData.duplicates);
+
+    //console.log(deleted)
+ 
+    //removeDuplicatesFromDb()
+
+    //exportToCsv(finalData)
 
 
   };
 
 
-const divideArrayIntoParts = (array, numberOfParts) => {
-    const chunkSize = Math.ceil(array.length / numberOfParts);
-    const dividedArray = [];
-  
-    for (let i = 0; i < array.length; i += chunkSize) {
-      const chunk = array.slice(i, i + chunkSize);
-      dividedArray.push(chunk);
-    }
-  
-    return dividedArray;
-  };
+  function exportToCsv(obj){
+    const csvStream = csvV.format({ headers: true });
 
-const iterateDividedArrayWithTimeout = (dividedArray, index) => {
-    if (index >= dividedArray.length) {
-      // Base case: Reached the end of the divided array
-      return;
-    }
+    const writableStream = fs.createWriteStream("./utils/updated.csv");
+    csvStream.pipe(writableStream);
   
-    const currentPart = dividedArray[index];
-    // Perform your desired operation on the current part of the array
-    console.log('Processing part', index + 1, );
+    obj.forEach((item) => {
+      csvStream.write(item);
+    });
+  
+    csvStream.end();
+  
+    console.log('CSV file exported successfully.');
 
-    currentPart.forEach(async (req, index) => {
+  }
 
-        setTimeout(async () => {
-          await updateClaimReqStatus(req.claimReqId);
-          
-        },  6000); // Delay each iteration by (index + 1) * 6000 milliseconds
+
+ /*  function removeDuplicates(array, property1, property2, property3) {
+    const uniqueRecords = array.reduce((accumulator, current) => {
+      const isDuplicate = accumulator.some((item) =>
+        item[property1] === current[property1] &&
+        parseFloat(item[property2]) === parseFloat(current[property2]) &&
+        parseFloat(item[property3]) === parseFloat(current[property3])
+        
+      );
+
+      
+  
+      if (!isDuplicate) {
+        accumulator.push(current);
+      }
+  
+      return accumulator;
+    }, []);
+  
+    return uniqueRecords;
+  } */
+  
+  function removeDuplicates(array, property1, property2, property3) {
+    const uniqueRecords = [];
+    const duplicates = [];
+  
+    array.forEach((current) => {
+      const isDuplicate = uniqueRecords.some((item) =>
+        item[property1] === current[property1] &&
+        parseFloat(item[property2]) === parseFloat(current[property2]) &&
+        parseFloat(item[property3]) === parseFloat(current[property3]) 
+      );
+  
+      if (isDuplicate) {
+        duplicates.push(current);
+      } else {
+        uniqueRecords.push(current);
+      }
+    });
+  
+    return {
+      uniqueRecords,
+      duplicates
+    };
+  }
+
+  const removeDuplicatesFromDb = async (claims) =>{
+   
+
+    try {
+      const updatedRows = await prisma.hWMCClaimRequest.deleteMany({
+        where: {
+          claimReqId:{
+            in: claims.claimReqId,
+          },
+          // Specify the conditions to select the rows you want to update
+          // For example, to update rows where the "status" is "pending"
+          //OR: claims.map((claim) => ({ claimReqId: claim.claimReqId })),
+          claimReqStatus: 'pending'
+        }
       });
+
+      console.log(updatedRows)
+      return updatedRows
   
-    setTimeout(() => {
-      iterateDividedArrayWithTimeout(dividedArray, index + 1); // Recursively call the function for the next part
-    }, 10000); // 10 seconds timeout
-  };
+
+    } catch (error) {
+      console.error('Error updating rows:', error);
+    } finally {
+      await prisma.$disconnect();
+    }
   
+
+
+  }
+
+  function removeRecordsByField(arr, fieldName, values) {
+    return arr.filter((obj) => !values.includes(obj[fieldName]));
+  }
+
+
 
 
 async function main() {
     try {
-      await prisma.$connect(); // Establish Prisma DB connection
+     // await prisma.$connect(); // Establish Prisma DB connection
 
-    
 
 
     await readExcelDataAndSetSuccess()
@@ -98,7 +149,7 @@ async function main() {
     } catch (error) {
       console.error('Error:', error);
     } finally {
-      await prisma.$disconnect(); // Release Prisma DB connection
+      //await prisma.$disconnect(); // Release Prisma DB connection
     }
   }
   

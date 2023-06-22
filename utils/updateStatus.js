@@ -39,11 +39,11 @@ const readExcelDataAndSetSuccess = async () => {
     const jsonObj = await readStream.pipe(csv());
     console.log(jsonObj.length);
     
-    const dividedArray = divideArrayIntoParts(jsonObj, 5);
+    const dividedArray = divideArrayIntoParts(jsonObj, 10);
     
     console.log(dividedArray[1].length);
 
-    iterateDividedArrayWithTimeout(dividedArray, 3);
+    iterateDividedArrayWithTimeout(dividedArray, 0);
 
 
   };

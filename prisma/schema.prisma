@@ -21,8 +21,8 @@ model ClaimHistory {
   address   String
   amount    Decimal
   claimedAt DateTime
-  user      User     @relation(fields: [claimId], references: [id])
   claimId   Int
+  user      User     @relation(fields: [claimId], references: [id])
 
   @@index([claimId])
 }
@@ -46,12 +46,12 @@ model NftData {
 }
 
 model NftClaimData {
-  id            Int      @id @default(autoincrement())
-  isClaimed     Boolean?
-  isBlacklisted Boolean?
-  NFTid         Int
-  airdropId     Int?
-  claimReqId    String?
+  id             Int      @id @default(autoincrement())
+  isClaimed      Boolean?
+  isBlacklisted  Boolean?
+  NFTid          Int
+  airdropId      Int?
+  claimReqId     String?
   claimReqStatus String?
 
   @@index([NFTid])
@@ -63,20 +63,22 @@ model HWMCClaimHistory {
   amountUSDT Decimal
   amountwBTC Decimal
   claimedAt  DateTime
-  user       HWMCUser @relation(fields: [claimId], references: [id])
   claimId    Int
+  user       HWMCUser @relation(fields: [claimId], references: [id])
 
   @@index([claimId])
 }
 
 model HWMCClaimRequest {
-  id          Int      @id @default(autoincrement())
-  address     String
-  amountUSDT  Decimal
-  amountwBTC  Decimal
-  claimedAt   DateTime
-  claimReqId  String
+  id             Int      @id @default(autoincrement())
+  address        String
+  amountUSDT     Decimal
+  amountwBTC     Decimal
+  claimedAt      DateTime
+  claimReqId     String
   claimReqStatus String
+  airdropId      Int?
+  nftIds         String?
 
   @@index([claimReqId])
 }

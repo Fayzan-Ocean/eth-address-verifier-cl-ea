@@ -54,8 +54,6 @@ const claimRequestId = uuidv4();
 
 
   let response = { data:{}}
-  let holdingNfts=[];
-  let dbData=[];
   let nftIdsUnclaimed = [];
   let nftIdsToReward = []
 
@@ -105,10 +103,16 @@ const claimRequestId = uuidv4();
     return validIds;
   }
   async function getDbData(_dropId) {
-        const allUsers = await prisma.nftClaimData.findMany({
+    try {
+       const allUsers = await prisma.nftClaimData.findMany({
           where: { airdropId: _dropId },
         })
         return allUsers;
+    } catch (error) {
+      console.log("Database Fetch Error", error)
+      return null
+    }
+       
       }
   async function filterClaimedNFTsFromEthContract(nftIds) {
         const claimedNFTs = [];
@@ -145,13 +149,14 @@ const claimRequestId = uuidv4();
       
         return claimedNFTs;
       }
+    
 
   async function postDbData(_nftIds){
       
 
       let claimNFTdata = [];
 
-      _nftIds.forEach(async (i) => {
+      _nftIds.forEach( (i) => {
         claimNFTdata.push({
           isClaimed: true,
           isBlacklisted: null,
@@ -170,8 +175,9 @@ const claimRequestId = uuidv4();
       amountwBTC:(formatUnits(BigInt(rewardDetails[3].hex) || 0,8) * nftIds.length),
       claimedAt: new Date(),
       claimReqId: claimRequestId,
-      claimReqStatus: "pending"
-
+      claimReqStatus: "pending",
+      airdropId:parseInt(dropId),
+      nftIds: String(_nftIds.join(','))
      }
 
      try {
@@ -208,13 +214,6 @@ const claimRequestId = uuidv4();
     let allGood=0;
 
 
-   
-    try {
-      dbData = await getDbData(dropId);
-    } catch (error) {
-      console.log("Database Fetch Error", error)
-    }
-    
 
     try {
 
@@ -223,7 +222,9 @@ const claimRequestId = uuidv4();
 
       const allNFTs = bigIntArrToIntArr(await myContract.walletOfOwner(ethAddress));//Get NFT Ids of the wallet address from HWMC
       const nftIdsList = removeDuplicates(nftIdsArray);//Remove Dublicate NFT ids from user input array
-      holdingNfts = getCommonValues(nftIdsList,allNFTs)//Filter Out the NFT ids that are in holder's wallet
+      const holdingNfts = getCommonValues(nftIdsList,allNFTs)//Filter Out the NFT ids that are in holder's wallet
+
+      const dbData = await getDbData(dropId); //Get Data from DB
       nftIdsUnclaimed = getValidNftIds(holdingNfts,dbData)//Check if NFT id is claimed in the Database
 
       
@@ -262,7 +263,7 @@ const claimRequestId = uuidv4();
       return callback(200, Requester.success(jobRunID,response));
     }
 
-  console.log( nftIdsToReward)
+  console.log(nftIdsToReward)
     try {
       console.log("POSTED")
 
