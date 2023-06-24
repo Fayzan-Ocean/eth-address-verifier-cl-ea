@@ -21,7 +21,7 @@ const readExcelDataAndSetSuccess = async () => {
 
     const updatedData = removeDuplicates(jsonObj,'Address','USDT Amount',"wBTC Amount" );
     console.log(updatedData.uniqueRecords.length)
-    console.log(updatedData.duplicates.length)
+    console.log(updatedData.duplicates)
 
     const finalData = removeRecordsByField(updatedData.uniqueRecords,'Address',blWallets)
     console.log(finalData.length)
@@ -85,7 +85,9 @@ const readExcelDataAndSetSuccess = async () => {
       const isDuplicate = uniqueRecords.some((item) =>
         item[property1] === current[property1] &&
         parseFloat(item[property2]) === parseFloat(current[property2]) &&
-        parseFloat(item[property3]) === parseFloat(current[property3]) 
+        parseFloat(item[property3]) === parseFloat(current[property3]) &&
+       ( (item['airdropId'] !== null && item['airdropId'] === current['airdropId']) ||
+        (item['airdropId'] !== 'null' && item['airdropId'] === current['airdropId']))
       );
   
       if (isDuplicate) {

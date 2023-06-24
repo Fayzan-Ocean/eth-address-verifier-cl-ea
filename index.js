@@ -1,9 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const { Requester, Validator } = require("@chainlink/external-adapter");
-const { ethers, InfuraProvider, JsonRpcProvider, formatUnits } = require("ethers");
+const { ethers, InfuraProvider, JsonRpcProvider, formatUnits, AlchemyProvider } = require("ethers");
 const abi = require("./abi.json")
 const hwmc_eth_abi = require("./abi_hwmc.json")
+const hwmc_matic_abi = require("./abi_claim_matic.json")
 const { PrismaClient } = require('@prisma/client');
 const e = require("express");
 const { v4: uuidv4 } = require('uuid');
@@ -15,13 +16,19 @@ const prisma = new PrismaClient()
 const port = process.env.EA_PORT || 8080;
 const contractAddress = "0xba72b008D53D3E65f6641e1D63376Be2F9C1aD05";
 const HWMCClaimcontractAddress = "0xBb51cd620a5328c8c30491686385B74a2d859f99"
+const ClaimContractAddressMatic = "0xd002f7d00124a65329Dce927ea1213C1b3E7cD8e";
 const provider = new InfuraProvider("homestead",process.env.INFURA_API_KEY)
 const provider2 = new InfuraProvider("homestead",process.env.INFURA_API_KEY)
+const provider3 = new AlchemyProvider("matic", process.env.ALCHEMY_API_KEY);
+
 
 const myContract = new ethers.Contract(contractAddress, abi, provider);
 const HWMC_ETH_Contract = new ethers.Contract(HWMCClaimcontractAddress, hwmc_eth_abi, provider2);
+const HWMC_MATIC_Contract = new ethers.Contract(ClaimContractAddressMatic, hwmc_matic_abi, provider3);
 
 app.use(bodyParser.json());
+
+
 // Enable CORS middleware
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*'); // Replace '*' with the specific origin you want to allow
@@ -45,7 +52,7 @@ const createRequest = async (input, callback) => {
   const validator = new Validator(callback, input, customParams);
   const jobRunID = validator.validated.id;
   const nftIds = validator.validated.data.nftIds;
-  const dropId = validator.validated.data.dropId;
+  const dropId = parseInt(validator.validated.data.dropId);
   const ethAddress = validator.validated.data.ethAddress;
   const rewardDetails = validator.validated.data.rewardDetails;
 
@@ -149,8 +156,6 @@ const claimRequestId = uuidv4();
       
         return claimedNFTs;
       }
-    
-
   async function postDbData(_nftIds){
       
 
@@ -166,13 +171,17 @@ const claimRequestId = uuidv4();
           claimReqStatus: "pending"
         });
       });
+
+      const rewardData = await getRewards();
+
+      console.log(rewardData)
      
 
      const claimRequestData = {
 
       address:ethAddress,
-      amountUSDT:(formatUnits(BigInt(rewardDetails[1].hex) || 0,6) * nftIds.length),
-      amountwBTC:(formatUnits(BigInt(rewardDetails[3].hex) || 0,8) * nftIds.length),
+      amountUSDT:(formatUnits(BigInt(rewardData[1]) || 0,6) * nftIds.length),
+      amountwBTC:(formatUnits(BigInt(rewardData[3]) || 0,8) * nftIds.length),
       claimedAt: new Date(),
       claimReqId: claimRequestId,
       claimReqStatus: "pending",
@@ -204,6 +213,20 @@ const claimRequestId = uuidv4();
     
 
       }
+
+
+async function getRewards(){
+
+  try {
+    const theRewards = await HWMC_MATIC_Contract.Rewards( dropId);
+   
+    return theRewards
+    
+  } catch (error) {
+    
+  }
+
+}
 
 
 
