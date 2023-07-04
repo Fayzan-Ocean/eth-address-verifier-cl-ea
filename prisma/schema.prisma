@@ -79,6 +79,7 @@ model HWMCClaimRequest {
   claimReqStatus String
   airdropId      Int?
   nftIds         String?
+  waveReward     Boolean?
 
   @@index([claimReqId])
 }

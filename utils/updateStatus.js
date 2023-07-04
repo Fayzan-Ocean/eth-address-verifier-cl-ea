@@ -4,7 +4,7 @@ const fs = require("fs");
 
 
 const prisma = new PrismaClient()
-const csvFilePath='./utils/data.csv'
+const csvFilePath='./utils/updated.csv'
 
 const readStream=fs.createReadStream(csvFilePath);
 

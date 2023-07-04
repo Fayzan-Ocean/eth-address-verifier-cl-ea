@@ -9,7 +9,7 @@ const csvFilePath='./utils/reqs.csv'
 
 const readStream=fs.createReadStream(csvFilePath);
 
-const blWallets = ["0x94dB1FE366d59624be05eF8d8D692FEc10831f5D"]
+const blWallets = ["0x94dB1FE366d59624be05eF8d8D692FEc10831f5D","0x70147829cf79978BBb3Ed44F6141c1A520e14f7C","0x6Fd01E41EC0EB002fDA76E01ce4220F509166826"]
 
 const readExcelDataAndSetSuccess = async () => {
     const jsonObj = await readStream.pipe(csv());
@@ -21,7 +21,7 @@ const readExcelDataAndSetSuccess = async () => {
 
     const updatedData = removeDuplicates(jsonObj,'Address','USDT Amount',"wBTC Amount" );
     console.log(updatedData.uniqueRecords.length)
-    console.log(updatedData.duplicates)
+    console.log(updatedData.duplicates.length)
 
     const finalData = removeRecordsByField(updatedData.uniqueRecords,'Address',blWallets)
     console.log(finalData.length)
@@ -33,7 +33,7 @@ const readExcelDataAndSetSuccess = async () => {
  
     //removeDuplicatesFromDb()
 
-    //exportToCsv(finalData)
+    exportToCsv(finalData)
 
 
   };
@@ -54,7 +54,6 @@ const readExcelDataAndSetSuccess = async () => {
     console.log('CSV file exported successfully.');
 
   }
-
 
  /*  function removeDuplicates(array, property1, property2, property3) {
     const uniqueRecords = array.reduce((accumulator, current) => {

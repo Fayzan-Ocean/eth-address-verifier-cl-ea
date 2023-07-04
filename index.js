@@ -42,6 +42,7 @@ const customParams = {
   dropId:true,
   ethAddress: true,
   rewardDetails:true,
+  waveReward:false,
   endpoint: false,
 };
 
@@ -55,6 +56,7 @@ const createRequest = async (input, callback) => {
   const dropId = parseInt(validator.validated.data.dropId);
   const ethAddress = validator.validated.data.ethAddress;
   const rewardDetails = validator.validated.data.rewardDetails;
+  const waveReward = validator.validated.data.waveReward
 
 const claimRequestId = uuidv4();
 
@@ -109,6 +111,9 @@ const claimRequestId = uuidv4();
     }
     return validIds;
   }
+
+
+  
   async function getDbData(_dropId) {
     try {
        const allUsers = await prisma.nftClaimData.findMany({
@@ -172,6 +177,8 @@ const claimRequestId = uuidv4();
         });
       });
 
+
+      //Get Reward Data from Contract
       const rewardData = await getRewards();
 
       console.log(rewardData)
@@ -186,7 +193,8 @@ const claimRequestId = uuidv4();
       claimReqId: claimRequestId,
       claimReqStatus: "pending",
       airdropId:parseInt(dropId),
-      nftIds: String(_nftIds.join(','))
+      nftIds: String(_nftIds.join(',')),
+      waveReward: waveReward ? true : false
      }
 
      try {
@@ -230,7 +238,7 @@ async function getRewards(){
 
 
 
-  async function checkData() {
+async function checkData() {
 
 
     let nftIdsArray = nftIds;
@@ -313,7 +321,7 @@ async function getRewards(){
 
 
 
-  }
+}
 
   await checkData();
 
